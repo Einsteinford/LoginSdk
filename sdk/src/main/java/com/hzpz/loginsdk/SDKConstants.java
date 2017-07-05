@@ -14,6 +14,7 @@ public interface SDKConstants {
      * </p>
      */
     public static final String WEIBO_REDIRECT_URL = "http://www.sharesdk.cn";
+    public static final String WECHAT_REDIRECT_URL = "http://www.sharesdk.cn";
 
     /**
      * Scope 是 OAuth2.0 授权机制中 authorize 接口的一个参数。通过 Scope，平台将开放更多的微博
@@ -33,5 +34,6 @@ public interface SDKConstants {
                     + "friendships_groups_read,friendships_groups_write,statuses_to_me_read,"
                     + "follow_app_official_microblog," + "invitation_write";
     public static final String QQ_SCOPE = "all";
+    public static final String WECHAT_SCOPE = "snsapi_userinfo";
 
 }

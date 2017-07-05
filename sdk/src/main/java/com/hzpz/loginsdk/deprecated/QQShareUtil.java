@@ -1,9 +1,11 @@
-package com.hzpz.loginsdk;
+package com.hzpz.loginsdk.deprecated;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.hzpz.loginsdk.QQSdk;
+import com.hzpz.loginsdk.ShareListener;
 import com.tencent.connect.common.Constants;
 import com.tencent.tauth.IUiListener;
 import com.tencent.tauth.UiError;

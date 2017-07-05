@@ -1,9 +1,11 @@
-package com.hzpz.loginsdk;
+package com.hzpz.loginsdk.deprecated;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
+import com.hzpz.loginsdk.Util;
+import com.hzpz.loginsdk.WxSdk;
 import com.sina.weibo.sdk.api.ImageObject;
 import com.sina.weibo.sdk.api.TextObject;
 import com.sina.weibo.sdk.api.WebpageObject;
@@ -47,7 +49,7 @@ public class ShareCallback implements WbShareCallback {
         req.transaction = buildTransaction("img");
         req.message = msg;
         req.scene = isTimeline ? SendMessageToWX.Req.WXSceneTimeline : SendMessageToWX.Req.WXSceneSession;
-        WeChatSdk.getInstance().sendReq(req);
+        WxSdk.getInstance().sendReq(req);
     }
 
     public void shareTextToWeChat(String text, Boolean isTimeline) {
@@ -64,7 +66,7 @@ public class ShareCallback implements WbShareCallback {
         req.message = msg;
         req.scene = isTimeline ? SendMessageToWX.Req.WXSceneTimeline : SendMessageToWX.Req.WXSceneSession;
 
-        WeChatSdk.getInstance().sendReq(req);
+        WxSdk.getInstance().sendReq(req);
     }
 
     public void shareMusicToWeChat(String musicUrl, Bitmap bitmap, Boolean isTimeline) {
@@ -81,7 +83,7 @@ public class ShareCallback implements WbShareCallback {
         req.transaction = buildTransaction("music");
         req.message = msg;
         req.scene = isTimeline ? SendMessageToWX.Req.WXSceneTimeline : SendMessageToWX.Req.WXSceneSession;
-        WeChatSdk.getInstance().sendReq(req);
+        WxSdk.getInstance().sendReq(req);
     }
 
     public void callback(Intent intent) {

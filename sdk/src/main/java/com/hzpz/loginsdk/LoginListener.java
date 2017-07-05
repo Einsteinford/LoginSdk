@@ -12,7 +12,7 @@ public interface LoginListener {
      * @param SocialName 第三方用户名
      * @param iconUrl    头像地址
      */
-    void onLoginSuccess(String platFrom ,String openId, String token, String SocialName, String iconUrl);
+    void onLoginSuccess(String platFrom, String openId, String token, String SocialName, String iconUrl);
 
     void onLoginFail(String errorMsg, String errorCode);
 

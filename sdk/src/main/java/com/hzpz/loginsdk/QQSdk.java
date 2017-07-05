@@ -1,10 +1,8 @@
 package com.hzpz.loginsdk;
 
 import android.content.Context;
-import android.content.Intent;
 import android.text.TextUtils;
 
-import com.tencent.connect.common.Constants;
 import com.tencent.tauth.Tencent;
 
 /**
@@ -48,11 +46,5 @@ public class QQSdk {    //此类只保存了context，user，boolean三个参数
 
     public static synchronized Tencent getInstance() {
         return Tencent.createInstance(getQQUserInfo().getAppKey(), getContext());
-    }
-
-    public static void callback(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Constants.REQUEST_LOGIN || requestCode == Constants.REQUEST_APPBAR) {
-            getInstance().onActivityResultData(requestCode, resultCode, data, null);
-        }
     }
 }

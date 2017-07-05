@@ -22,20 +22,18 @@ import com.sina.weibo.sdk.share.WbShareHandler;
 
 import org.json.JSONObject;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.LinkedHashMap;
 
 /**
  * Created by kk on 17-5-24.
  */
 
-public class WeiboLogin {
+public class WbLogin {
     private static SsoHandler mSsoHandler;
     private WbShareHandler mWeiboShare;
     private WbShareCallback mWbShareCallback;
 
-    public WeiboLogin() {
+    public WbLogin() {
     }
 
     public static void login(final Activity activity, final LoginListener listener) {
@@ -71,25 +69,32 @@ public class WeiboLogin {
         mSsoHandler.authorize(mListener);
     }
 
-    public void Share(final Activity activity, WbShareHandler webShareHandler, final ShareListener listener, Bitmap bitmap, String url, String content) {
-        WeiboMultiMessage multiMessage = new WeiboMultiMessage();
-        TextObject textObject = new TextObject();
-        String str = "";
-        if (content.length() > 100) {
-            str = content.substring(0, 100) + "...." + url;
-        } else {
-            str = content + "...." + url;
-        }
-        textObject.text = str;
-        multiMessage.textObject = textObject;
-        if (bitmap != null) {
-            ImageObject imageObject = new ImageObject();
-            imageObject.setImageObject(bitmap);
-            multiMessage.imageObject = imageObject;
-        }
-        mWeiboShare = webShareHandler;
-        webShareHandler.registerApp();
-        webShareHandler.shareMessage(multiMessage, false);
+    public void Share(final Activity activity, final WbShareHandler webShareHandler, final ShareListener listener, String imageUrl, final String url, final String content) {
+        DownloadImageUtil downloadImageUtil = new DownloadImageUtil(activity, imageUrl, new DownloadImageUtil.onLogoDownloadListener(){
+
+            @Override
+            public void getLogoBitmap(Bitmap bitmap) {
+                WeiboMultiMessage multiMessage = new WeiboMultiMessage();
+                TextObject textObject = new TextObject();
+                String str = "";
+                if (content.length() > 100) {
+                    str = content.substring(0, 100) + "...." + url;
+                } else {
+                    str = content + "...." + url;
+                }
+                textObject.text = str;
+                multiMessage.textObject = textObject;
+                if (bitmap != null) {
+                    ImageObject imageObject = new ImageObject();
+                    imageObject.setImageObject(bitmap);
+                    multiMessage.imageObject = imageObject;
+                }
+                mWeiboShare = webShareHandler;
+                webShareHandler.registerApp();
+                webShareHandler.shareMessage(multiMessage, false);
+            }
+        });
+        downloadImageUtil.execute();
         mWbShareCallback = new WbShareCallback() {
 
             @Override
@@ -107,33 +112,8 @@ public class WeiboLogin {
                 listener.onShareFail();
             }
         };
-    }
 
-//    public static void requestUserData(String tonken, String openId, LoginListener listener) throws Exception {
-//        String path = "https://api.weibo.com/2/users/show.json?access_token=" + tonken + "&uid=" + openId;
-//        // 新建一个URL对象
-//        URL url = new URL(path);
-//        // 打开一个HttpURLConnection连接
-//        HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
-//        // 设置连接超时时间
-//        urlConn.setConnectTimeout(5 * 1000);
-//        // 开始连接
-//        urlConn.connect();
-//        // 判断请求是否成功
-//        if (urlConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-//            // 获取返回的数据
-//            urlConn.getInputStream().toString();
-//            System.out.println(urlConn.getInputStream().toString());
-//            JSONObject jsonObject = new JSONObject(urlConn.getInputStream().toString());
-//            String nickName = jsonObject.get("screen_name").toString();
-//            String icon = jsonObject.get("profile_image_url").toString();
-//            listener.onLoginSuccess("weibo", openId, tonken, nickName, icon);
-//        } else {
-//            listener.onLoginFail("登录失败", "0");
-//        }
-//        // 关闭连接
-//        urlConn.disconnect();
-//    }
+    }
 
     public static void requestUserData(final Context context, final String tonken, final String openId, final LoginListener listener) throws Exception {
         final String path = "https://api.weibo.com/2/users/show.json";

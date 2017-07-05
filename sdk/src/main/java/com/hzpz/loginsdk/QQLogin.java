@@ -9,6 +9,7 @@ import android.util.Log;
 import com.tencent.connect.UserInfo;
 import com.tencent.connect.common.Constants;
 import com.tencent.tauth.IUiListener;
+import com.tencent.tauth.Tencent;
 import com.tencent.tauth.UiError;
 
 import org.json.JSONObject;
@@ -21,13 +22,13 @@ public class QQLogin {
 
     private QQLogin() {
     }
-
     public static void login(final Activity activity, final LoginListener listener) {
         final String[] token = new String[1];
         final String[] expires = new String[1];
         final String[] openId = new String[1];
         final String[] nickname = new String[1];
         final String[] iconUrl = new String[1];
+
         IUiListener mListener = new IUiListener() {
             @Override
             public void onComplete(Object o) {
@@ -67,9 +68,7 @@ public class QQLogin {
                 listener.onLoginCancel();
             }
         };
-        if (!QQSdk.getInstance().isSessionValid()) {    //由于上文已经 setAccessToken 等方法，所以此处会判断登录是否过期
             QQSdk.getInstance().login(activity, QQSdk.getQQUserInfo().getScope(), mListener);
-        }
     }
 
     public static void share(final Activity activity, final ShareListener listener, Bundle param) {
@@ -89,13 +88,11 @@ public class QQLogin {
                 listener.onShareCancel();
             }
         };
-        if (!QQSdk.getInstance().isSessionValid()) {
             QQSdk.getInstance().shareToQQ(activity, param, mListener);
-        }
     }
 
     public static void callback(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Constants.REQUEST_LOGIN || requestCode == Constants.REQUEST_APPBAR) {
+        if (requestCode == Constants.REQUEST_LOGIN || requestCode == Constants.REQUEST_APPBAR || requestCode == Constants.REQUEST_QQ_SHARE) {
             QQSdk.getInstance().onActivityResultData(requestCode, resultCode, data, null);
         }
     }
