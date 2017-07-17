@@ -4,12 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.tencent.connect.UserInfo;
 import com.tencent.connect.common.Constants;
 import com.tencent.tauth.IUiListener;
-import com.tencent.tauth.Tencent;
 import com.tencent.tauth.UiError;
 
 import org.json.JSONObject;
@@ -34,7 +32,6 @@ public class QQLogin {
             public void onComplete(Object o) {
                 try {
                     JSONObject QQObject = (JSONObject) o;
-                    Log.i("kkTest", "onComplete: " + o.toString());
                     if (QQObject.has("nickname")) {
                         nickname[0] = QQObject.getString("nickname");
                         iconUrl[0] = QQObject.getString("figureurl_qq_2");
@@ -59,7 +56,6 @@ public class QQLogin {
 
             @Override
             public void onError(UiError uiError) {
-                Log.i("kkTest", "code: " + uiError.errorCode + " msg: " + uiError.errorMessage + " detail: " + uiError.errorDetail);
                 listener.onLoginFail(uiError.errorMessage, String.valueOf(uiError.errorCode));
             }
 

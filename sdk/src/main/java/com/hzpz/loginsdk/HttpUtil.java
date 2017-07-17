@@ -1,7 +1,6 @@
 package com.hzpz.loginsdk;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 import java.io.BufferedReader;

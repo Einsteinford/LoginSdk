@@ -1,9 +1,7 @@
 package com.hzpz.loginsdk;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.tencent.mm.opensdk.constants.ConstantsAPI;
@@ -15,7 +13,6 @@ import com.tencent.mm.opensdk.modelmsg.WXMediaMessage;
 import com.tencent.mm.opensdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -24,15 +21,49 @@ import org.json.JSONObject;
  */
 
 public class WxLogin {
-    private static final String TAG = "kkTest";
-    private static LoginListener sListener;
+    private static LoginListener sLoginListener;
+    private static ShareListener sShareListener;
 
     public static void login(LoginListener listener) {
+        if (!WxSdk.getInstance().isWXAppInstalled()) {
+            Toast.makeText(WxSdk.getContext(), "请安装微信！", Toast.LENGTH_SHORT).show();
+            return;
+        }
         SendAuth.Req req = new SendAuth.Req();
         req.scope = WxSdk.getWXUserInfo().getScope();
         req.state = WxSdk.getWXUserInfo().getRedirectUri();
         WxSdk.getInstance().sendReq(req);
-        sListener = listener;
+        sLoginListener = listener;
+    }
+
+    public static void share(final String title, final String content, final String url,
+                             String imageUrl, final int type, ShareListener listener) {
+
+        if (!WxSdk.getInstance().isWXAppInstalled()) {
+            Toast.makeText(WxSdk.getContext(), "请安装微信！", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        sShareListener = listener;
+        new DownloadImageUtil(imageUrl, new DownloadImageUtil.onLogoDownloadListener() {
+
+            @Override
+            public void getLogoBitmap(Bitmap bitmap) {
+                WXWebpageObject pageObject = new WXWebpageObject();
+                pageObject.webpageUrl = url;
+                WXMediaMessage msg = new WXMediaMessage(pageObject);
+                msg.title = title;
+                msg.description = content;
+                if (null != bitmap) {
+                    Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
+                    msg.thumbData = Util.bmpToByteArray(thumbBmp, true); // 设置缩略图
+                }
+                SendMessageToWX.Req req = new SendMessageToWX.Req();
+                req.transaction = WxSdk.getWXUserInfo().getRedirectUri();
+                req.message = msg;
+                req.scene = type;
+                WxSdk.getInstance().sendReq(req);
+            }
+        }).execute();
     }
 
     public static void callback(Intent intent) {
@@ -56,19 +87,22 @@ public class WxLogin {
                                 getToken(code);
                             }
                         } else {
-                            sListener.onLoginFail("登录未成功", "0");
+                            sLoginListener.onLoginFail("登录未成功", "0");
                         }
                         break;
                     case ConstantsAPI.COMMAND_SENDMESSAGE_TO_WX://分享
                         switch (resp.errCode) {
                             case BaseResp.ErrCode.ERR_OK:
-//                                doOnShareSuccess(resp.transaction);
-//                                ToastUtil.Toast(this, "分享成功");
+                                if (resp.transaction.equals(WxSdk.getWXUserInfo().getRedirectUri())) {
+                                    sShareListener.onShareSuccess();
+                                    break;
+                                }//验证不通过，就分享失败
+                            case BaseResp.ErrCode.ERR_SENT_FAILED:
+                                sShareListener.onShareFail();
                                 break;
                             case BaseResp.ErrCode.ERR_USER_CANCEL:
                             case BaseResp.ErrCode.ERR_AUTH_DENIED:
-                            default:
-//                                ToastUtil.Toast(this, "分享失败");
+                                sShareListener.onShareCancel();
                                 break;
                         }
                         break;
@@ -107,7 +141,6 @@ public class WxLogin {
 //
 //                            @Override
 //                            public void onClick(DialogInterface dialog, int which) {
-//                                // TODO Auto-generated method stub
 //                                finish();
 //                            }
 //                        });
@@ -128,7 +161,7 @@ public class WxLogin {
                 try {
                     JSONObject jsonObject = new JSONObject(data);
                     if (data.contains("errcode")) {
-                        sListener.onLoginFail(jsonObject.getString("errmsg"), jsonObject.getString("errcode"));
+                        sLoginListener.onLoginFail(jsonObject.getString("errmsg"), jsonObject.getString("errcode"));
                     } else {
                         String access_token = jsonObject.getString("access_token");
                         String openid = jsonObject.getString("openid");
@@ -161,11 +194,11 @@ public class WxLogin {
                 try {
                     JSONObject jsonObject = new JSONObject(data);
                     if (data.contains("errcode")) {
-                        sListener.onLoginFail(jsonObject.getString("errmsg"), jsonObject.getString("errcode"));
+                        sLoginListener.onLoginFail(jsonObject.getString("errmsg"), jsonObject.getString("errcode"));
                     } else {
                         String nickname = jsonObject.getString("nickname");
                         String headimgurl = jsonObject.getString("headimgurl");
-                        sListener.onLoginSuccess("wechat",openid,access_token,nickname,headimgurl);
+                        sLoginListener.onLoginSuccess("wechat", openid, access_token, nickname, headimgurl);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -178,39 +211,4 @@ public class WxLogin {
             }
         }).execute();
     }
-
-    public static void share(Context context, final String mTitle, final String mContent, final String mUrl,
-                             String imageUrl, final String transaction, final int type) {
-        boolean sIsWXAppInstalledAndSupported = WxSdk.getInstance().isWXAppInstalled();
-
-        //WeChatSdk.getInstance().isWXAppSupportAPI() 个别手机不支持api
-        if (!sIsWXAppInstalledAndSupported) {
-            //TODO
-            Toast.makeText(context, "请安装微信！", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        new DownloadImageUtil(context, imageUrl, new DownloadImageUtil.onLogoDownloadListener() {
-
-            @Override
-            public void getLogoBitmap(Bitmap bitmap) {
-                WXWebpageObject pageObject = new WXWebpageObject();
-                pageObject.webpageUrl = mUrl;
-                WXMediaMessage msg = new WXMediaMessage(pageObject);
-                msg.title = mTitle;
-                msg.description = mContent;
-                if (null != bitmap) {
-                    Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
-                    msg.thumbData = Util.bmpToByteArray(thumbBmp, true); // 设置缩略图
-//                Bitmap bitmap1 = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_banner_default);
-//                msg.thumbData = Util.bmpToByteArray(bitmap1, true);
-                }
-                SendMessageToWX.Req req = new SendMessageToWX.Req();
-                req.transaction = transaction;
-                req.message = msg;
-                req.scene = type;
-                WxSdk.getInstance().sendReq(req);
-            }
-        }).execute();
-    }
-
 }
