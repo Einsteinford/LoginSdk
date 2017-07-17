@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import com.sina.weibo.sdk.WbSdk;
 import com.sina.weibo.sdk.api.ImageObject;
@@ -30,8 +29,8 @@ import java.util.LinkedHashMap;
 
 public class WbLogin {
     private static SsoHandler mSsoHandler;
-    private WbShareHandler mWeiboShare;
-    private WbShareCallback mWbShareCallback;
+    private static WbShareCallback sWbShareCallback;
+    private static WbShareHandler sWbShareHandler;
 
     public WbLogin() {
     }
@@ -66,11 +65,11 @@ public class WbLogin {
                 listener.onLoginFail(wbConnectErrorMessage.getErrorMessage(), wbConnectErrorMessage.getErrorCode());
             }
         };
-        mSsoHandler.authorize(mListener);
+        mSsoHandler.authorizeWeb(mListener);
     }
 
-    public void Share(final Activity activity, final WbShareHandler webShareHandler, final ShareListener listener, String imageUrl, final String url, final String content) {
-        DownloadImageUtil downloadImageUtil = new DownloadImageUtil(activity, imageUrl, new DownloadImageUtil.onLogoDownloadListener(){
+    public static void Share(final Activity activity, final ShareListener listener, String imageUrl, final String url, final String content) {
+        DownloadImageUtil downloadImageUtil = new DownloadImageUtil(imageUrl, new DownloadImageUtil.onLogoDownloadListener() {
 
             @Override
             public void getLogoBitmap(Bitmap bitmap) {
@@ -89,13 +88,13 @@ public class WbLogin {
                     imageObject.setImageObject(bitmap);
                     multiMessage.imageObject = imageObject;
                 }
-                mWeiboShare = webShareHandler;
-                webShareHandler.registerApp();
-                webShareHandler.shareMessage(multiMessage, false);
+                sWbShareHandler = new WbShareHandler(activity);
+                sWbShareHandler.registerApp();
+                sWbShareHandler.shareMessage(multiMessage, false);
             }
         });
         downloadImageUtil.execute();
-        mWbShareCallback = new WbShareCallback() {
+        sWbShareCallback = new WbShareCallback() {
 
             @Override
             public void onWbShareSuccess() {
@@ -127,7 +126,6 @@ public class WbLogin {
             public void run() {
                 try {
                     String s = HttpManager.openUrl(context, path, "GET", parameters);
-                    Log.i("kkTest", s);
                     JSONObject jsonObject = new JSONObject(s);
                     String nickName = jsonObject.get("screen_name").toString();
                     String icon = jsonObject.get("profile_image_url").toString();
@@ -146,7 +144,9 @@ public class WbLogin {
         }
     }
 
-    public void onNewIntent(Intent intent) {
-        mWeiboShare.doResultIntent(intent, mWbShareCallback);
+    public static void onNewIntent(Intent intent) {
+        if (sWbShareHandler != null && sWbShareCallback != null) {
+            sWbShareHandler.doResultIntent(intent, sWbShareCallback);
+        }
     }
 }
