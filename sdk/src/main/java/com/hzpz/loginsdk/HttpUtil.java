@@ -1,7 +1,5 @@
 package com.hzpz.loginsdk;
 
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 import java.io.BufferedReader;
@@ -11,25 +9,26 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Created by Administrator on 2017/4/27.
+ *
+ * @author kk
+ * @date 2017/4/27
  */
 
 public class HttpUtil extends AsyncTask<String, Void, String> {
 
-    public Context context;// Context上下文
-    private String path;// 图片路径
-    private onRequestListener listener;
+    // 图片路径
+    private String path;
+    private OnRequestListener listener;
 
     /** 自定义一个接口，在需要下载图片的UI类中实现此接口 */
-    public interface onRequestListener {
+    public interface OnRequestListener {
         void onSuccess(String data);
 
         void onFailure(Exception e);
     }
 
 
-    public HttpUtil(Context context, String path, onRequestListener listener) {
-        this.context = context;
+    HttpUtil(String path, OnRequestListener listener) {
         this.path = path;
         this.listener = listener;
     }

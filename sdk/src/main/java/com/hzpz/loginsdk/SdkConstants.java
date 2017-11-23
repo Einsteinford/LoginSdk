@@ -1,10 +1,12 @@
 package com.hzpz.loginsdk;
 
 /**
- * Created by kk on 17-5-24.
+ *
+ * @author kk
+ * @date 17-5-24
  */
 
-public interface SDKConstants {
+public interface SdkConstants {
 
     /**
      * <p>

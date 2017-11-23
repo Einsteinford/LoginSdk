@@ -6,10 +6,12 @@ import android.text.TextUtils;
 import com.tencent.tauth.Tencent;
 
 /**
- * Created by kk on 17-5-27.
+ * @author kk
+ * @date 17-5-27
+ * 此类只保存了context，user，boolean三个参数
  */
 
-public class QQSdk {    //此类只保存了context，user，boolean三个参数
+public class QQSdk {
     private static boolean init = false;
     private static QQUserInfo sQQUserInfo;
     private static Context mContext;

@@ -1,6 +1,5 @@
 package com.hzpz.loginsdk;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -13,24 +12,27 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Created by Administrator on 2017/4/27.
+ *
+ * @author kk
+ * @date 2017/4/27
  */
 
 public class DownloadImageUtil extends AsyncTask<String, Integer, Bitmap> {
+    // 图片路径
+    private String path;
+    private OnLogoDownloadListener listener;
 
-public Context context;// Context上下文
-private String path;// 图片路径
-private onLogoDownloadListener listener;
-
-    /** 自定义一个接口，在需要下载图片的UI类中实现此接口 */
-    public static interface onLogoDownloadListener {
+    public interface OnLogoDownloadListener {
+        /**
+         * 下载成功后回调此方法
+         * @param bitmap
+         */
         void getLogoBitmap(Bitmap bitmap);
     }
 
 
-    public DownloadImageUtil(Context context, String path, onLogoDownloadListener listener) {
-        this.context = context;
-        this.path =  path;//http://www.baidu.com/image/dwadkwajda/134wd.jpg
+    public DownloadImageUtil(String path, OnLogoDownloadListener listener) {
+        this.path = path;
         this.listener = listener;
     }
 

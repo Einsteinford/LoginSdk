@@ -7,7 +7,8 @@ import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 
 /**
- * Created by kk on 17-5-26.
+ * @author kk
+ * @date 17-5-26
  */
 
 public class WxSdk  {

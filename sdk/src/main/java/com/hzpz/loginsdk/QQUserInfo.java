@@ -1,23 +1,24 @@
 package com.hzpz.loginsdk;
 
-/**
- * Created by kk on 17-5-27.
- */
-
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * @author kk
+ */
 public class QQUserInfo implements Parcelable {
     private String mAppKey = "";
     private String mScope = "";
     private String mPackageName = "";
     public static final Creator<QQUserInfo> CREATOR = new Creator<QQUserInfo>() {
+        @Override
         public QQUserInfo createFromParcel(Parcel source) {
             return new QQUserInfo(source);
         }
 
+        @Override
         public QQUserInfo[] newArray(int size) {
             return new QQUserInfo[size];
         }
@@ -57,10 +58,12 @@ public class QQUserInfo implements Parcelable {
         return new QQUserInfo(context, appKey, scope);
     }
 
+    @Override
     public int describeContents() {
         return 0;
     }
 
+    @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.mAppKey);
         dest.writeString(this.mScope);

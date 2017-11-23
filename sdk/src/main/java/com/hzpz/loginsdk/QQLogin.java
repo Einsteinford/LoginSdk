@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.tencent.connect.UserInfo;
 import com.tencent.connect.common.Constants;
@@ -15,7 +14,9 @@ import com.tencent.tauth.UiError;
 import org.json.JSONObject;
 
 /**
- * Created by kk on 17-5-27.
+ *
+ * @author kk
+ * @date 17-5-27
  */
 
 public class QQLogin {
@@ -34,7 +35,6 @@ public class QQLogin {
             public void onComplete(Object o) {
                 try {
                     JSONObject QQObject = (JSONObject) o;
-                    Log.i("kkTest", "onComplete: " + o.toString());
                     if (QQObject.has("nickname")) {
                         nickname[0] = QQObject.getString("nickname");
                         iconUrl[0] = QQObject.getString("figureurl_qq_2");
@@ -59,7 +59,6 @@ public class QQLogin {
 
             @Override
             public void onError(UiError uiError) {
-                Log.i("kkTest", "code: " + uiError.errorCode + " msg: " + uiError.errorMessage + " detail: " + uiError.errorDetail);
                 listener.onLoginFail(uiError.errorMessage, String.valueOf(uiError.errorCode));
             }
 
@@ -93,7 +92,7 @@ public class QQLogin {
 
     public static void callback(int requestCode, int resultCode, Intent data) {
         if (requestCode == Constants.REQUEST_LOGIN || requestCode == Constants.REQUEST_APPBAR || requestCode == Constants.REQUEST_QQ_SHARE) {
-            QQSdk.getInstance().onActivityResultData(requestCode, resultCode, data, null);
+            Tencent.onActivityResultData(requestCode, resultCode, data, null);
         }
     }
 }
