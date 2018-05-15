@@ -2,6 +2,9 @@ package com.hzpz.loginsdk;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.tencent.mm.opensdk.constants.ConstantsAPI;
@@ -9,14 +12,15 @@ import com.tencent.mm.opensdk.modelbase.BaseReq;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;
+import com.tencent.mm.opensdk.modelmsg.WXImageObject;
 import com.tencent.mm.opensdk.modelmsg.WXMediaMessage;
+import com.tencent.mm.opensdk.modelmsg.WXTextObject;
 import com.tencent.mm.opensdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler;
 
 import org.json.JSONObject;
 
 /**
- *
  * @author kk
  * @date 17-5-26
  * https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=open1419317851&token=&lang=zh_CN
@@ -38,35 +42,118 @@ public class WxLogin {
         sLoginListener = listener;
     }
 
-    public static void share(final String title, final String content, final String url,
-                             String imageUrl, final int type, ShareListener listener) {
+    public static void share(final int type,
+                             ShareListener listener,
+                             @NonNull final String title,
+                             @Nullable final String content,
+                             @NonNull final String url,
+                             @Nullable String imageUrl) {
 
         if (!WxSdk.getInstance().isWXAppInstalled()) {
             Toast.makeText(WxSdk.getContext(), "请安装微信！", Toast.LENGTH_SHORT).show();
             return;
         }
-        sShareListener = listener;
-        new DownloadImageUtil(imageUrl, new DownloadImageUtil.OnLogoDownloadListener() {
 
-            @Override
-            public void getLogoBitmap(Bitmap bitmap) {
-                WXWebpageObject pageObject = new WXWebpageObject();
-                pageObject.webpageUrl = url;
-                WXMediaMessage msg = new WXMediaMessage(pageObject);
-                msg.title = title;
-                msg.description = content;
-                if (null != bitmap) {
-                    Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
-                    // 设置缩略图
-                    msg.thumbData = Util.bmpToByteArray(thumbBmp, true);
-                }
-                SendMessageToWX.Req req = new SendMessageToWX.Req();
-                req.transaction = WxSdk.getWXUserInfo().getRedirectUri();
+        //成为一个网页分享的最低要求
+        if (!TextUtils.isEmpty(url) && !TextUtils.isEmpty(title)) {
+            sShareListener = listener;
+            final SendMessageToWX.Req req = new SendMessageToWX.Req();
+            req.transaction = WxSdk.getWXUserInfo().getRedirectUri();
+            req.scene = type;
+            final WXWebpageObject pageObject = new WXWebpageObject();
+            pageObject.webpageUrl = url;
+            final WXMediaMessage msg = new WXMediaMessage(pageObject);
+            msg.title = title;
+            msg.description = (content == null ? "" : content);
+
+            if (!TextUtils.isEmpty(imageUrl)) {
+                new DownloadImageUtil(imageUrl, new DownloadImageUtil.OnLogoDownloadListener() {
+                    @Override
+                    public void getLogoBitmap(Bitmap bitmap) {
+                        if (null != bitmap) {
+                            Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
+                            bitmap.recycle();
+                            // 设置缩略图
+                            msg.thumbData = Util.bmpToByteArray(thumbBmp, true);
+                        }
+                        req.message = msg;
+                        WxSdk.getInstance().sendReq(req);
+                    }
+                }).execute();
+            } else {
                 req.message = msg;
-                req.scene = type;
                 WxSdk.getInstance().sendReq(req);
             }
-        }).execute();
+        } else {
+            return;
+        }
+    }
+
+    /**
+     * 只分享文本
+     *
+     * @param type 是指针对朋友圈还是朋友进行分享
+     */
+    public static void shareText(final int type, ShareListener listener, final String content) {
+        if (!WxSdk.getInstance().isWXAppInstalled()) {
+            Toast.makeText(WxSdk.getContext(), "请安装微信！", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        sShareListener = listener;
+
+        if (content != null) {
+            // 初始化一个WXTextObject对象
+            WXTextObject textObj = new WXTextObject();
+            textObj.text = content;
+
+            // 用WXTextObject对象初始化一个WXMediaMessage对象
+            WXMediaMessage msg = new WXMediaMessage();
+            msg.mediaObject = textObj;
+            // 发送文本类型的消息时，title字段不起作用
+            // msg.title = "Will be ignored";
+            msg.description = content;
+
+            SendMessageToWX.Req req = new SendMessageToWX.Req();
+            req.transaction = WxSdk.getWXUserInfo().getRedirectUri();
+            req.scene = type;
+            req.message = msg;
+            WxSdk.getInstance().sendReq(req);
+        }
+    }
+
+    /**
+     * 只分享图片
+     *
+     * @param type 是指针对朋友圈还是朋友进行分享
+     */
+    public static void shareImg(final int type, ShareListener listener, final String imageUrl) {
+        if (!WxSdk.getInstance().isWXAppInstalled()) {
+            Toast.makeText(WxSdk.getContext(), "请安装微信！", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        sShareListener = listener;
+        if (!TextUtils.isEmpty(imageUrl)) {
+            new DownloadImageUtil(imageUrl, new DownloadImageUtil.OnLogoDownloadListener() {
+                @Override
+                public void getLogoBitmap(Bitmap bitmap) {
+                    if (null != bitmap) {
+                        WXImageObject imgObj = new WXImageObject(bitmap);
+                        WXMediaMessage msg = new WXMediaMessage();
+                        msg.mediaObject = imgObj;
+                        Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
+                        bitmap.recycle();
+                        // 设置缩略图
+                        msg.thumbData = Util.bmpToByteArray(thumbBmp, true);
+
+                        SendMessageToWX.Req req = new SendMessageToWX.Req();
+                        req.transaction = WxSdk.getWXUserInfo().getRedirectUri();
+                        req.scene = type;
+                        req.message = msg;
+                        WxSdk.getInstance().sendReq(req);
+                    }
+                }
+            }).execute();
+        }
     }
 
     public static void callback(Intent intent) {

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.sina.weibo.sdk.WbSdk;
 import com.sina.weibo.sdk.api.ImageObject;
@@ -70,34 +72,15 @@ public class WbLogin {
         mSsoHandler.authorize(mListener);
     }
 
-    public static void share(final Activity activity, final ShareListener listener, String imageUrl, final String url, final String content) {
-        DownloadImageUtil downloadImageUtil = new DownloadImageUtil(imageUrl, new DownloadImageUtil.OnLogoDownloadListener() {
-
-            @Override
-            public void getLogoBitmap(Bitmap bitmap) {
-                WeiboMultiMessage multiMessage = new WeiboMultiMessage();
-                TextObject textObject = new TextObject();
-                String str = "";
-                if (content.length() > 100) {
-                    str = content.substring(0, 100) + "...." + url;
-                } else {
-                    str = content + "...." + url;
-                }
-                textObject.text = str;
-                multiMessage.textObject = textObject;
-                if (bitmap != null) {
-                    ImageObject imageObject = new ImageObject();
-                    imageObject.setImageObject(bitmap);
-                    multiMessage.imageObject = imageObject;
-                }
-                sWbShareHandler = new WbShareHandler(activity);
-                sWbShareHandler.registerApp();
-                sWbShareHandler.shareMessage(multiMessage, false);
-            }
-        });
-        downloadImageUtil.execute();
+    /**
+     * 分享普通文本微博,属性基本都可以是空的
+     */
+    public static void share(final Activity activity,
+                             final ShareListener listener,
+                             @Nullable final String content,
+                             @Nullable final String url,
+                             @Nullable final String imageUrl) {
         sWbShareCallback = new WbShareCallback() {
-
             @Override
             public void onWbShareSuccess() {
                 listener.onShareSuccess();
@@ -114,6 +97,50 @@ public class WbLogin {
             }
         };
 
+        sWbShareHandler = new WbShareHandler(activity);
+        sWbShareHandler.registerApp();
+
+        final WeiboMultiMessage multiMessage = new WeiboMultiMessage();
+
+        if (!TextUtils.isEmpty(content) || !TextUtils.isEmpty(url)) {
+            TextObject textObject = new TextObject();
+            if (!TextUtils.isEmpty(content)) {
+                String str;
+                if (content.length() > 100) {
+                    str = content.substring(0, 100) + "...";
+                } else {
+                    str = content;
+                }
+                textObject.text = str;
+            }
+            if (!TextUtils.isEmpty(url)) {
+                if (textObject.text == null) {
+                    textObject.text = url;
+                } else {
+                    textObject.text += url;
+                }
+            }
+            multiMessage.textObject = textObject;
+        }
+
+        if (!TextUtils.isEmpty(imageUrl)) {
+            //有图片时，下载后进行分享
+            DownloadImageUtil downloadImageUtil = new DownloadImageUtil(imageUrl, new DownloadImageUtil.OnLogoDownloadListener() {
+                @Override
+                public void getLogoBitmap(Bitmap bitmap) {
+                    if (bitmap != null) {
+                        ImageObject imageObject = new ImageObject();
+                        imageObject.setImageObject(bitmap);
+                        multiMessage.imageObject = imageObject;
+                    }
+                    sWbShareHandler.shareMessage(multiMessage, false);
+                }
+            });
+            downloadImageUtil.execute();
+        } else {
+            //否则直接分享
+            sWbShareHandler.shareMessage(multiMessage, false);
+        }
     }
 
     public static void requestUserData(final Context context, final String tonken, final String openId, final LoginListener listener) throws Exception {

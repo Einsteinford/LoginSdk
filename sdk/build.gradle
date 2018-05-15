@@ -1,19 +1,22 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '27.0.3'
+    compileSdkVersion System.properties['compileSdkVersion'] ? Integer.parseInt(System.properties['compileSdkVersion']) : 26
+    buildToolsVersion System.properties['buildToolsVersion'] ? Integer.parseInt(System.properties['buildToolsVersion']) : '26.0.2'
 
-    defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 25
-        versionCode 1
-        versionName "1.1"
+    lintOptions {
+        abortOnError false
     }
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']
         }
+    }
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion System.properties['targetSdkVersion'] ? Integer.parseInt(System.properties['targetSdkVersion']) : 26
+        versionCode 3
+        versionName "1.0.3"
     }
     buildTypes {
         debug {
@@ -25,11 +28,17 @@ android {
     }
 }
 
+configurations.all {
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 10, 'seconds'
+}
+
 dependencies {
-    api fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:support-v4:25.4.0'
+    api fileTree(dir: 'libs', include: ['*.jar'])
+
+    compileOnly 'com.android.support:support-fragment:26.0.0'
     //微博
     api 'com.sina.weibo.sdk:core:4.2.7:openDefaultRelease@aar'
     //微信
-    api 'com.tencent.mm.opensdk:wechat-sdk-android-with-mta:+'
+    api 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
 }

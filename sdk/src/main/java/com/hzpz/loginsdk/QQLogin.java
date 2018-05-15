@@ -3,10 +3,14 @@ package com.hzpz.loginsdk;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.tencent.connect.UserInfo;
 import com.tencent.connect.common.Constants;
+import com.tencent.connect.share.QQShare;
 import com.tencent.tauth.IUiListener;
 import com.tencent.tauth.Tencent;
 import com.tencent.tauth.UiError;
@@ -14,7 +18,6 @@ import com.tencent.tauth.UiError;
 import org.json.JSONObject;
 
 /**
- *
  * @author kk
  * @date 17-5-27
  */
@@ -23,6 +26,7 @@ public class QQLogin {
 
     private QQLogin() {
     }
+
     public static void login(final Activity activity, final LoginListener listener) {
         final String[] token = new String[1];
         final String[] expires = new String[1];
@@ -67,10 +71,25 @@ public class QQLogin {
                 listener.onLoginCancel();
             }
         };
-            QQSdk.getInstance().login(activity, QQSdk.getQQUserInfo().getScope(), mListener);
+        QQSdk.getInstance().login(activity, QQSdk.getQQUserInfo().getScope(), mListener);
     }
 
-    public static void share(final Activity activity, final ShareListener listener, Bundle param) {
+    public static void share(final Activity activity,
+                             final ShareListener listener,
+                             @NonNull String title,
+                             @Nullable String content,
+                             @NonNull String url,
+                             @Nullable String imgUrl) {
+        final Bundle params = new Bundle();
+        params.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE, QQShare.SHARE_TO_QQ_TYPE_DEFAULT);
+        if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(url)) {
+            Log.w("thirdsdk", "QQLogin.share: PARAM_TITLE、TARGET_URL不能为空");
+        }
+        params.putString(QQShare.SHARE_TO_QQ_TITLE, title);
+        params.putString(QQShare.SHARE_TO_QQ_IMAGE_URL, imgUrl == null ? "" : imgUrl);
+        params.putString(QQShare.SHARE_TO_QQ_SUMMARY, content == null ? "" : content);
+        params.putString(QQShare.SHARE_TO_QQ_TARGET_URL, url);
+
         IUiListener mListener = new IUiListener() {
             @Override
             public void onComplete(Object o) {
@@ -87,7 +106,7 @@ public class QQLogin {
                 listener.onShareCancel();
             }
         };
-            QQSdk.getInstance().shareToQQ(activity, param, mListener);
+        QQSdk.getInstance().shareToQQ(activity, params, mListener);
     }
 
     public static void callback(int requestCode, int resultCode, Intent data) {
